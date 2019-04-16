@@ -1,26 +1,27 @@
 package org.spring.cloud.architect.redis.test;
 
+import com.google.common.collect.Lists;
 import org.apache.http.Consts;
 import org.apache.http.HttpResponse;
-import org.apache.http.NameValuePair;
-import org.apache.http.client.entity.UrlEncodedFormEntity;
-import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.ContentType;
+import org.apache.http.entity.StringEntity;
+import org.apache.http.entity.mime.MultipartEntityBuilder;
+import org.apache.http.entity.mime.content.StringBody;
 import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.util.EntityUtils;
 import org.junit.Test;
 import org.spring.cloud.architect.common.util.HttpClientUtil;
+import org.spring.cloud.architect.common.util.JsonUtil;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.*;
 
 /**
  * Created by lee on 2018/10/15.
  */
 public class ListAcceptTest {
-    private static final String httpUrl = "http://localhost:8080/redis/getValueByKeys1";
+    private static final String httpUrl = "http://localhost:9000/redis/getValueByKeys1";
+    private static final String httpUrl2 = "http://localhost:9000/redis/getValueByKeys2";
 //    private static final String httpUrl = "http://10.96.91.192:9000/redis/getValueByKeys1";
 
 
@@ -29,14 +30,18 @@ public class ListAcceptTest {
         try {
             CloseableHttpClient httpClient = HttpClientUtil.getHttpClient();
             HttpPost httpPost = new HttpPost(httpUrl);
-            List<NameValuePair> nvps = new ArrayList<NameValuePair>();
 
-            String param = "2";
+            List<String> paramList = Lists.newArrayList("lee1", "lee3", "lee2");
 
-            nvps.add(new BasicNameValuePair("paramList", param));//返回有参数的
+            MultipartEntityBuilder builder = MultipartEntityBuilder.create();
+            for(String param:paramList){
+                builder.addPart("paramList", new StringBody(param, ContentType.TEXT_PLAIN)) ;
+            }
 
-            httpPost.addHeader("Content-Type", "application/x-www-form-urlencoded");
-            httpPost.setEntity(new UrlEncodedFormEntity(nvps, Consts.UTF_8));
+//            nvps.add(new BasicNameValuePair("paramList", paramList));//返回有参数的
+
+            httpPost.addHeader("Content-Type", ContentType.APPLICATION_FORM_URLENCODED.toString());
+            httpPost.setEntity(builder.build());
             System.out.println("Executing request: " + httpPost.getRequestLine());
             HttpResponse response = httpClient.execute(httpPost);
             System.out.println("----------------------------------------");
@@ -49,17 +54,21 @@ public class ListAcceptTest {
 
 
     @Test
-    public void testGetIdGet() {
+    public void testListAccept1() {
         try {
             CloseableHttpClient httpClient = HttpClientUtil.getHttpClient();
-            String param = "580542489925532";   //有数据
-            HttpGet httpGet = new HttpGet(httpUrl + "?param=" + param);
-            List<NameValuePair> nvps = new ArrayList<NameValuePair>();
+            HttpPost httpPost = new HttpPost(httpUrl);
+            httpPost.addHeader("Content-Type", ContentType.APPLICATION_JSON.toString());
 
+            List<String> paramList = Lists.newArrayList("lee1", "lee3", "lee2");
 
-            httpGet.addHeader("Content-Type", "application/x-www-form-urlencoded");
-            System.out.println("Executing request: " + httpGet.getRequestLine());
-            HttpResponse response = httpClient.execute(httpGet);
+            StringEntity entity = new StringEntity(JsonUtil.toJson(paramList), "utf-8");//解决中文乱码问题
+            entity.setContentEncoding(Consts.UTF_8.toString());
+            entity.setContentType(ContentType.APPLICATION_JSON.toString());
+            httpPost.setEntity(entity);
+
+            System.out.println("Executing request: " + httpPost.getRequestLine());
+            HttpResponse response = httpClient.execute(httpPost);
             System.out.println("----------------------------------------");
             System.out.println(response.getStatusLine());
             System.out.println(EntityUtils.toString(response.getEntity()));
@@ -68,53 +77,28 @@ public class ListAcceptTest {
         }
     }
 
-
     @Test
-    public void testGetIdBatch() throws ExecutionException, InterruptedException {
-        Integer total = 2000;
-        ExecutorService exc = Executors.newFixedThreadPool(total);
-        List<Future<String>> futures = new ArrayList<Future<String>>();
-        for (int i = 0; i < total; i++) {
-            //提交单个线程
-            Future<String> future = exc.submit(new Callable<String>() {
-                @Override
-                public String call() throws Exception {
-                    return getIdGet();
-                }
-            });
-            //将每个线程放入线程集合， 这里如果任何一个线程的执行结果没有回调，线程都会自动堵塞
-            futures.add(future);
-        }
-        for (Future<String> future : futures) {
-            String json = future.get();
-            System.out.println("json=" + json);
-        }
-        //关闭线程池
-        exc.shutdown();
-    }
-
-
-    public String getIdGet() {
-        String result = "";
+    public void testListAccept2() {
         try {
             CloseableHttpClient httpClient = HttpClientUtil.getHttpClient();
-            String param = "580542489925532";   //有数据
-            HttpGet httpGet = new HttpGet(httpUrl + "?param=" + param);
-            List<NameValuePair> nvps = new ArrayList<NameValuePair>();
+            HttpPost httpPost = new HttpPost(httpUrl2);
+            httpPost.addHeader("Content-Type", ContentType.APPLICATION_JSON.toString());
 
+            String[] paramArray = new String[]{"lee1", "lee3", "lee2"} ;
 
-            httpGet.addHeader("Content-Type", "application/x-www-form-urlencoded");
-            System.out.println("Executing request: " + httpGet.getRequestLine());
-            HttpResponse response = httpClient.execute(httpGet);
+            StringEntity entity = new StringEntity(JsonUtil.toJson(paramArray),Consts.UTF_8);//解决中文乱码问题
+            entity.setContentEncoding(Consts.UTF_8.toString());
+            entity.setContentType(ContentType.APPLICATION_JSON.toString());
+            httpPost.setEntity(entity);
+
+            System.out.println("Executing request: " + httpPost.getRequestLine());
+            HttpResponse response = httpClient.execute(httpPost);
             System.out.println("----------------------------------------");
             System.out.println(response.getStatusLine());
-            result = EntityUtils.toString(response.getEntity());
-//            System.out.println(result);
-
+            System.out.println(EntityUtils.toString(response.getEntity()));
         } catch (Exception ex) {
             ex.printStackTrace();
         }
-        return result;
     }
 
 

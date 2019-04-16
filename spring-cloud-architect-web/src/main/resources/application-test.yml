@@ -1,0 +1,89 @@
+# SPRING_BOOT_CONF
+server:
+        port: 9100
+spring:
+        application:
+                      name: cloud-architect
+
+
+logging:
+        config: classpath:logback-spring.xml
+
+log:
+     path: /home/lee/logs/org-spring-cloud
+     level: INFO
+     gather: /home/lee/logs/org-spring-cloud-gather
+     key: org-spring-cloud
+     gatherName: report
+
+hystrix:
+  command:
+    default:
+      execution:
+        isolation:
+          thread:
+            timeoutInMilliseconds: 30000 #缺省为1000
+
+feign:
+  client:
+    config:
+      default:
+          connectTimeout: 10000
+          readTimeout: 120000
+  hystrix:
+          enabled: true
+
+
+
+eureka:
+        client:
+                serviceUrl:
+                            # 服务器注册/获取服务器的zone
+                            defaultZone: http://127.0.0.1:8761/eureka/
+                            # defaultZone: http://192.168.21.3:8761/eureka/,http://192.168.21.4:8761/eureka/
+        instance:
+                prefer-ip-address: true
+
+
+turbine:
+  # 配置Eureka中的serviceId列表，表明监控哪些服务,多个服务用',"分隔
+  appConfig: CLOUD-CONTROL-HYSTRIX
+  aggregator:
+    # 指定聚合哪些集群，多个使用”,”分割，默认为default。可使用http://.../turbine.stream?cluster={clusterConfig之一}访问
+    clusterConfig: default
+  clusterNameExpression: new String("default")
+
+
+#####management.endpoints.web.exposure.include=*
+management:
+          endpoints:
+                    web:
+                        exposure:
+                                  include: ["health","info","hystrix.stream"]
+
+
+swagger:
+        show:
+              enable: true
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,33 @@
+# SPRING_BOOT_CONF
+server:
+        port: 9000
+spring:
+        application:
+                      name: cloud-apollo
+
+redisson:
+         config:
+                address: redis://10.96.91.192:6379
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,28 @@
+# SPRING_BOOT_CONF
+server:
+        port: 9000
+spring:
+        application:
+                      name: cloud-apollo
+#
+#logging:
+#        config: classpath:logback-spring.xml
+
+app:
+    id: APOLLO_CONFIG
+apollo:
+        meta: http://10.179.81.25:8080
+        cacheDir: /Users/lee/logs/org-spring-cloud
+
+env: DEV
+        
+
+
+
+
+
+
+
+
+
+

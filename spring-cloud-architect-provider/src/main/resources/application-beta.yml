@@ -1,0 +1,58 @@
+# port
+server:
+        port: 9444
+spring:
+        application:
+                      name: cloud-provider
+
+#首先开启Feign对Hystrix的支持，在properties文件中添加以下配置：
+feign:
+  client:
+    config:
+      default:
+          connectTimeout: 10000
+          readTimeout: 120000
+  hystrix:
+          enabled: true
+
+
+hystrix:
+  command:
+    ##全局方法使用default
+    CloudServiceProviderFeign#add():
+      execution:
+        isolation:
+          thread:
+          ##超时时间
+            timeoutInMilliseconds: 500
+      #线程池核心线程数
+      coreSize: 1000
+      #QUEUE
+      maxQueueSize: 1
+      queueSizeRejectionThreshold: 100
+      circuitBreaker:
+      ##当在配置时间窗口内达到此数量的失败后，进行短路。默认10秒内20个
+        requestVolumeThreshold: 3
+        sleepWindowInMilliseconds: 5 #短路多久以后开始尝试是否恢复，默认5s
+        errorThresholdPercentage: 50 #出错百分比阈值，当达到此阈值后，开始短路。默认50%
+    default:
+          execution:
+            isolation:
+              thread:
+                timeoutInMilliseconds: 30000 #缺省为1000
+
+
+eureka:
+        client:
+                serviceUrl:
+                            # 服务器注册/获取服务器的zone
+                            defaultZone: http://127.0.0.1:8761/eureka/
+                            # defaultZone: http://192.168.21.3:8761/eureka/,http://192.168.21.4:8761/eureka/
+        instance:
+                prefer-ip-address: true
+
+
+#来开启一些管理功能，且须在配置文件加入一句：
+management:
+            security:
+                      enabled: false

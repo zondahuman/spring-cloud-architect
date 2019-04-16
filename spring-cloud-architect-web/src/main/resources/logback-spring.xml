@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration scan="true">
+
+    <springProperty scope="context" name="logPath" source="log.path" />
+    <springProperty scope="context" name="logLevel" source="log.level" />
+    <springProperty scope="context" name="logGather" source="log.gather" />
+    <springProperty scope="context" name="logKey" source="log.key" />
+    <springProperty scope="context" name="logGatherName" source="log.gatherName"/>
+
+    <appender name="vehicleAppender" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <!--<file>${logGather}/${logGatherName}.log.%d{yyyyMMddHH}</file>-->
+        <append>true</append>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy" filePermissions="rw-r--r--">
+            <fileNamePattern>${logPath}/control.log.%d{yyyyMMddHH}</fileNamePattern>
+        </rollingPolicy>
+        <encoder>
+            <pattern>${logKey}||timestamp=%d{yyyy-MM-dd HH:mm:ss}%m%n</pattern>
+        </encoder>
+        <filter class="ch.qos.logback.classic.filter.LevelFilter">
+            <level>${logLevel}</level>
+        </filter>
+    </appender>
+
+
+    <appender name="controlAppender" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${logPath}/control.log</file>
+        <append>true</append>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${logPath}/control.log.%d{yyyy-MM-dd}</fileNamePattern>
+        </rollingPolicy>
+        <encoder>
+            <pattern>[%date{yyyy-MM-dd HH:mm:ss}] [%-5level] [%logger:%line] &#45;&#45;%mdc{client} %msg%n</pattern>
+        </encoder>
+        <filter class="ch.qos.logback.classic.filter.LevelFilter">
+            <level>${logLevel}</level>
+        </filter>
+    </appender>
+
+
+    <!-- Console output -->
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>
+                [ %-5level] [%date{yyyy-MM-dd HH:mm:ss}] %logger{96} [%line] - %msg%n
+            </pattern>
+            <charset>UTF-8</charset> <!-- 此处设置字符集 -->
+        </encoder>
+        <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+            <level>${logLevel}</level>
+        </filter>
+    </appender>
+
+
+
+    <!--<springProfile name="prod">-->
+        <!--<root level="INFO">-->
+            <!--<appender-ref ref="FILE"/>-->
+            <!--<appender-ref ref="CONSOLE"/>-->
+        <!--</root>-->
+    <!--</springProfile>-->
+
+
+    <logger name="vehicle" level="${logLevel}" additivity="false">
+        <appender-ref ref="vehicleAppender" />
+    </logger>
+
+    <logger name="control" level="${logLevel}" additivity="false">
+        <appender-ref ref="controlAppender" />
+    </logger>
+
+
+    <root level="${logLevel}">
+        <appender-ref ref="CONSOLE"/>
+        <appender-ref ref="controlAppender"/>
+    </root>
+
+
+
+</configuration>
+
+
+

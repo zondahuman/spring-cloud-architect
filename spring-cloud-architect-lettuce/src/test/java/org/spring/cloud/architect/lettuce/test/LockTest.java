@@ -33,7 +33,7 @@ public class LockTest {
             List<NameValuePair> nvps = new ArrayList<NameValuePair>();
 
             String key = "order_id";
-            String value = "1001";
+            String value = "60";
             String expire = "60000";
 
             nvps.add(new BasicNameValuePair("key", key));//返回有参数的

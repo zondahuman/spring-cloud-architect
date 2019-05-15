@@ -1,5 +1,6 @@
 package org.spring.cloud.architect.lettuce.controller;
 
+import com.google.common.primitives.Ints;
 import lombok.extern.slf4j.Slf4j;
 import org.spring.cloud.architect.lettuce.cache.CacheService;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -22,7 +23,7 @@ public class LettuceController {
     @PostMapping("/lock")
     public String lock(String key, String value, Long expire) {
 
-        Boolean result = cacheService.lock(key, value, expire);
+        Boolean result = cacheService.lock(key, Ints.tryParse(value), expire);
 
         System.out.println("---------------------=" + result);
         cacheService.unlock(key, value);

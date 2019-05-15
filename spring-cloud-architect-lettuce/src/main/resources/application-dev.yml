@@ -3,11 +3,11 @@ server:
         port: 9000
 spring:
         application:
-                      name: cloud-redis
+                      name: cloud-lettuce
         redis:
                database: 0
-               host: 10.96.91.192
-               port: 6379
+               host: 10.179.133.9
+               port: 3010
                password: ""
                timeout: 60000
                lettuce:

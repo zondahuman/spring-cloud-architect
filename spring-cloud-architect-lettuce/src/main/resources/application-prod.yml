@@ -3,31 +3,20 @@ server:
         port: 9000
 spring:
         application:
-                      name: cloud-apollo
+                      name: cloud-lettuce
+        redis:
+               database: 0
+               host: 10.96.91.192
+               port: 6379
+               password: ""
+               timeout: 60000
+               lettuce:
+                 pool:
+                   max-active: 200
+                   max-wait: 1000
+                   max-idle: 200
+                   min-idle: 100
 
 redisson:
          config:
                 address: redis://10.96.91.192:6379
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

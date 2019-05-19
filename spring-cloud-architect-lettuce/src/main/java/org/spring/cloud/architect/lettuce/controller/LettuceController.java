@@ -37,4 +37,26 @@ public class LettuceController {
     }
 
 
+
+    @PostMapping("/acquireLock")
+    public String acquireLock(String key, String value, Long expire) {
+
+        Boolean result = cacheService.acquireLock(key, value, expire);
+
+        System.out.println("---------------------=" + result);
+        cacheService.acquireLock(key, value, expire);
+        return "SUCCESS";
+    }
+
+
+
+    @PostMapping("/releaseLock")
+    public String releaseLock(String key, String value) {
+        cacheService.releaseLock(key, value);
+        return "SUCCESS";
+    }
+
+
+
+
 }

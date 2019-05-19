@@ -74,18 +74,39 @@ public class CacheService {
     }
 
 
-    public boolean acquireLock(String lockKey, String lockValue, int expireTime) {
-
+    public boolean acquireLock(String lockKey, String lockValue, Long expireTime) {
+        Long lockWaitTimeOut = 2000L;
+        Long currentTime = System.currentTimeMillis();
+        Long deadTimeLine = currentTime + lockWaitTimeOut;
         for (; ; ) {
             Boolean result = redisTemplate.opsForValue()
                     .setIfAbsent(lockKey, lockValue, expireTime, TimeUnit.SECONDS);
             if (result) {
                 return true;
             }
-            return false;
+            lockWaitTimeOut = deadTimeLine - System.currentTimeMillis();
+
+            if (lockWaitTimeOut <= 0L) {
+                return false;
+            }
         }
 
     }
+
+
+    public void releaseLock(String lockKey, String lockValue) {
+        try {
+            String currentValue = (String) redisTemplate.opsForValue().get(lockKey);
+
+            if (StringUtils.isNotBlank(currentValue)
+                    && StringUtils.equals(lockValue, currentValue)) {
+                redisTemplate.delete(lockKey);
+            }
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
 
 
 }

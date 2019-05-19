@@ -95,18 +95,14 @@ public class CacheService {
 
 
     public void releaseLock(String lockKey, String lockValue) {
-        try {
-            String currentValue = (String) redisTemplate.opsForValue().get(lockKey);
+        String currentValue = (String) redisTemplate.opsForValue().get(lockKey);
 
-            if (StringUtils.isNotBlank(currentValue)
-                    && StringUtils.equals(lockValue, currentValue)) {
-                redisTemplate.delete(lockKey);
-            }
-        } catch (Exception e) {
-            throw new RuntimeException(e);
+        if (StringUtils.isNotBlank(currentValue)
+                && StringUtils.equals(lockValue, currentValue)) {
+            redisTemplate.delete(lockKey);
         }
-    }
 
+    }
 
 
 }

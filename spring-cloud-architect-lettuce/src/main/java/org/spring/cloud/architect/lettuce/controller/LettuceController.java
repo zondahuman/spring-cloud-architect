@@ -40,11 +40,10 @@ public class LettuceController {
 
     @PostMapping("/acquireLock")
     public String acquireLock(String key, String value, Long expire) {
-
+        System.out.println("key=" + key+",value=" + value+",expire=" + expire);
         Boolean result = cacheService.acquireLock(key, value, expire);
 
-        System.out.println("---------------------=" + result);
-        cacheService.acquireLock(key, value, expire);
+        System.out.println("key=" + key+",value=" + value+",expire=" + expire+",result=" + result);
         return "SUCCESS";
     }
 
@@ -52,6 +51,8 @@ public class LettuceController {
 
     @PostMapping("/releaseLock")
     public String releaseLock(String key, String value) {
+        System.out.println("key=" + key+",value=" + value);
+
         cacheService.releaseLock(key, value);
         return "SUCCESS";
     }

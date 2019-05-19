@@ -1,4 +1,4 @@
-package org.spring.cloud.architect.lettuce.test;
+package org.spring.cloud.architect.lettuce.test.lock;
 
 import org.apache.http.Consts;
 import org.apache.http.HttpResponse;
@@ -15,29 +15,30 @@ import org.spring.cloud.architect.common.util.HttpClientUtil;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 import java.util.concurrent.*;
 
 /**
  * Created by lee on 2018/10/15.
  */
-public class LockTest {
-    private static final String httpUrl = "http://localhost:9000/lettuce/lock";
-//    private static final String httpUrl = "http://10.96.91.192:9000/lettuce/lock";
+public class RequiredLockTest {
+    private static final String httpUrl = "http://localhost:9000/lettuce/acquireLock";
+//    private static final String httpUrl = "http://10.96.91.192:9000/lettuce/acquireLock";
 
 
     @Test
-    public void testGetId() {
+    public void testRequiredLock() {
         try {
             CloseableHttpClient httpClient = HttpClientUtil.getHttpClient();
             HttpPost httpPost = new HttpPost(httpUrl);
             List<NameValuePair> nvps = new ArrayList<NameValuePair>();
 
-            String key = "order_id";
-            String value = "60";
-            String expire = "60000";
+            String key = "order_id_"+1;
+            String lockValue = UUID.randomUUID().toString();
+            String expire = "60";
 
             nvps.add(new BasicNameValuePair("key", key));//返回有参数的
-            nvps.add(new BasicNameValuePair("value", value));//返回有参数的
+            nvps.add(new BasicNameValuePair("value", lockValue));//返回有参数的
             nvps.add(new BasicNameValuePair("expire", expire));//返回有参数的
 
             httpPost.addHeader("Content-Type", ContentType.APPLICATION_FORM_URLENCODED.toString());

@@ -1,7 +1,5 @@
 package org.spring.cloud.architect.common.util;
 
-import org.apache.commons.collections4.MapUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.http.*;
 import org.apache.http.client.HttpRequestRetryHandler;
 import org.apache.http.client.config.CookieSpecs;
@@ -11,6 +9,7 @@ import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.protocol.HttpClientContext;
+import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.config.Registry;
 import org.apache.http.config.RegistryBuilder;
 import org.apache.http.conn.ConnectTimeoutException;
@@ -18,7 +17,9 @@ import org.apache.http.conn.socket.ConnectionSocketFactory;
 import org.apache.http.conn.socket.PlainConnectionSocketFactory;
 import org.apache.http.conn.ssl.NoopHostnameVerifier;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
+import org.apache.http.entity.ContentType;
 import org.apache.http.entity.StringEntity;
+import org.apache.http.entity.mime.MIME;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
@@ -31,7 +32,6 @@ import javax.net.ssl.*;
 import java.io.IOException;
 import java.io.InterruptedIOException;
 import java.net.UnknownHostException;
-import java.nio.charset.Charset;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.*;
@@ -244,9 +244,8 @@ public class HttpClientUtil {
         String result = "";
         CloseableHttpClient httpClient = getHttpClient();
         try {
-            if(MapUtils.isEmpty(request))
-                throw new Exception("请求参数不能为空");
             HttpPost httpPost = new HttpPost(httpUrl);
+            httpPost.setHeader(MIME.CONTENT_TYPE, ContentType.APPLICATION_FORM_URLENCODED.toString());
             List<NameValuePair> nvps = new ArrayList<NameValuePair>();
             for(Iterator<Map.Entry<String, String>> iterator=request.entrySet().iterator(); iterator.hasNext();){
                 Map.Entry<String, String> entry = iterator.next();
@@ -269,19 +268,23 @@ public class HttpClientUtil {
         return result;
     }
 
-    public static String httpPost(String json, String httpUrl, Map<String, String> headers){
+    public static String httpPost(Map<String, String> request, Map<String, String> headers, String httpUrl){
         String result = "";
         CloseableHttpClient httpClient = getHttpClient();
         try {
-            if(StringUtils.isBlank(json))
-                throw new Exception("请求参数不能为空");
             HttpPost httpPost = new HttpPost(httpUrl);
             for(Iterator<Map.Entry<String, String>> iterator=headers.entrySet().iterator();iterator.hasNext();){
                 Map.Entry<String, String> entry = iterator.next();
                 Header header = new BasicHeader(entry.getKey(), entry.getValue());
                 httpPost.setHeader(header);
             }
-            httpPost.setEntity(new StringEntity(json, Charset.forName("UTF-8")));
+            httpPost.setHeader(MIME.CONTENT_TYPE, ContentType.APPLICATION_FORM_URLENCODED.toString());
+            List<NameValuePair> nvps = new ArrayList<NameValuePair>();
+            for(Iterator<Map.Entry<String, String>> iterator=request.entrySet().iterator(); iterator.hasNext();){
+                Map.Entry<String, String> entry = iterator.next();
+                nvps.add(new BasicNameValuePair(entry.getKey(), entry.getValue()));
+            }
+            httpPost.setEntity(new UrlEncodedFormEntity(nvps, Consts.UTF_8));
             System.out.println("Executing request: " + httpPost.getRequestLine());
             CloseableHttpResponse response = httpClient.execute(httpPost);
             result = EntityUtils.toString(response.getEntity());
@@ -298,11 +301,131 @@ public class HttpClientUtil {
         return result;
     }
 
+    public static String httpPost(String json, String httpUrl){
+        String result = "";
+        CloseableHttpClient httpClient = getHttpClient();
+        try {
+            HttpPost httpPost = new HttpPost(httpUrl);
+            httpPost.setHeader(MIME.CONTENT_TYPE, ContentType.APPLICATION_JSON.toString());
+            StringEntity entity = new StringEntity(json, Consts.UTF_8);
+            entity.setContentEncoding(Consts.UTF_8.toString());
+            entity.setContentType(ContentType.APPLICATION_JSON.toString());
+            httpPost.setEntity(entity);
+
+            System.out.println("Executing request: " + httpPost.getRequestLine());
+            CloseableHttpResponse response = httpClient.execute(httpPost);
+            result = EntityUtils.toString(response.getEntity());
+            System.out.println("Executing response: "+ result);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        } finally {
+            try {
+                httpClient.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        return result;
+    }
+
+    public static String httpPost(Map<String, String> headers, String json, String httpUrl){
+        String result = "";
+        CloseableHttpClient httpClient = getHttpClient();
+        try {
+            HttpPost httpPost = new HttpPost(httpUrl);
+            for(Iterator<Map.Entry<String, String>> iterator=headers.entrySet().iterator();iterator.hasNext();){
+                Map.Entry<String, String> entry = iterator.next();
+                Header header = new BasicHeader(entry.getKey(), entry.getValue());
+                httpPost.setHeader(header);
+            }
+            httpPost.setHeader(MIME.CONTENT_TYPE, ContentType.APPLICATION_JSON.toString());
+            StringEntity entity = new StringEntity(json, Consts.UTF_8);
+            entity.setContentEncoding(Consts.UTF_8.toString());
+            entity.setContentType(ContentType.APPLICATION_JSON.toString());
+            httpPost.setEntity(entity);
+
+            System.out.println("Executing request: " + httpPost.getRequestLine());
+            CloseableHttpResponse response = httpClient.execute(httpPost);
+            result = EntityUtils.toString(response.getEntity());
+            System.out.println("Executing response: "+ result);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        } finally {
+            try {
+                httpClient.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        return result;
+    }
+
+
     public static String httpGet(String httpUrl, Map<String, String> headers) {
         String result = "";
         CloseableHttpClient httpClient = getHttpClient();
         try {
             HttpGet httpGet = new HttpGet(httpUrl);
+            httpGet.setHeader(MIME.CONTENT_TYPE, ContentType.APPLICATION_FORM_URLENCODED.toString());
+            System.out.println("Executing request: " + httpGet.getRequestLine());
+            for(Iterator<Map.Entry<String, String>> iterator=headers.entrySet().iterator();iterator.hasNext();){
+                Map.Entry<String, String> entry = iterator.next();
+                Header header = new BasicHeader(entry.getKey(), entry.getValue());
+                httpGet.setHeader(header);
+            }
+            CloseableHttpResponse response = httpClient.execute(httpGet);
+            result = EntityUtils.toString(response.getEntity());
+            System.out.println("Executing response: "+ result);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        } finally {
+            try {
+                httpClient.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        return result;
+    }
+
+    public static String httpGet(Map<String, String> request, String httpUrl) {
+        String result = "";
+        CloseableHttpClient httpClient = getHttpClient();
+        try {
+            URIBuilder uriBuilder = new URIBuilder(httpUrl);
+            for(Iterator<Map.Entry<String, String>> iterator=request.entrySet().iterator();iterator.hasNext();){
+                Map.Entry<String, String> entry = iterator.next();
+                uriBuilder.addParameter(entry.getKey(), entry.getValue());
+            }
+            HttpGet httpGet = new HttpGet(uriBuilder.build());
+            httpGet.setHeader(MIME.CONTENT_TYPE, ContentType.APPLICATION_FORM_URLENCODED.toString());
+            System.out.println("Executing request: " + httpGet.getRequestLine());
+            CloseableHttpResponse response = httpClient.execute(httpGet);
+            result = EntityUtils.toString(response.getEntity());
+            System.out.println("Executing response: "+ result);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        } finally {
+            try {
+                httpClient.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        return result;
+    }
+
+    public static String httpGet(String httpUrl, Map<String, String> headers, Map<String, String> request) {
+        String result = "";
+        CloseableHttpClient httpClient = getHttpClient();
+        try {
+            URIBuilder uriBuilder = new URIBuilder(httpUrl);
+            for(Iterator<Map.Entry<String, String>> iterator=request.entrySet().iterator();iterator.hasNext();){
+                Map.Entry<String, String> entry = iterator.next();
+                uriBuilder.addParameter(entry.getKey(), entry.getValue());
+            }
+            HttpGet httpGet = new HttpGet(uriBuilder.build());
+            httpGet.setHeader(MIME.CONTENT_TYPE, ContentType.APPLICATION_FORM_URLENCODED.toString());
             System.out.println("Executing request: " + httpGet.getRequestLine());
             for(Iterator<Map.Entry<String, String>> iterator=headers.entrySet().iterator();iterator.hasNext();){
                 Map.Entry<String, String> entry = iterator.next();
@@ -330,6 +453,7 @@ public class HttpClientUtil {
         CloseableHttpClient httpClient = getHttpClient();
         try {
             HttpGet httpGet = new HttpGet(httpUrl);
+            httpGet.setHeader(MIME.CONTENT_TYPE, ContentType.APPLICATION_FORM_URLENCODED.toString());
             System.out.println("Executing request: " + httpGet.getRequestLine());
             CloseableHttpResponse response = httpClient.execute(httpGet);
             result = EntityUtils.toString(response.getEntity());
@@ -361,8 +485,7 @@ public class HttpClientUtil {
         String httpPostUrl1 = "http://www.abc.com/border/wall";
         Map<String, String> request1 = new HashMap<String, String>();
         request1.put("Cookie", "rule_id=64b713c52c7511e6a4519801a7928995");
-        String input = "{\"uid\":\"1\",\"ips\":[\"222.222.222.222\"]}";
-        String result1 = httpPost(input, httpPostUrl1,request1);
+        String result1 = httpPost(request1, httpPostUrl1);
         System.out.println("Executing result1: "+ result1);
     }
 
